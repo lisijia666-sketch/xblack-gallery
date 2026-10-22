@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#05070c">
+  <title>xblack 赛车图鉴</title>
+  <style>
+    :root{
+      --bg:#06080d;
+      --panel:#0d1320;
+      --panel-2:#121b2d;
+      --line:rgba(126,169,255,.18);
+      --line-2:rgba(255,170,70,.22);
+      --text:#edf3ff;
+      --muted:#8ea3c5;
+      --accent:#ff8b2b;
+      --accent-2:#ffd166;
+      --blue:#56a8ff;
+      --shadow:0 18px 60px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left,rgba(255,120,40,.18),transparent 32%),
+        radial-gradient(circle at top right,rgba(64,128,255,.16),transparent 28%),
+        linear-gradient(180deg,#0a0f1a 0%,#06080d 100%);
+      min-height:100vh;
+    }
+    .topbar{
+      position:sticky;top:0;z-index:40;
+      backdrop-filter:blur(14px);
+      background:rgba(4,8,14,.78);
+      border-bottom:1px solid var(--line);
+    }
+    .topbar-inner{
+      max-width:1400px;
+      margin:0 auto;
+      padding:18px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+    }
+    .brand-title{font-size:28px;font-weight:800;letter-spacing:.04em}
+    .brand-sub{font-size:12px;color:var(--muted);margin-top:4px}
+    .brand-badge{
+      padding:10px 14px;
+      border:1px solid var(--line-2);
+      background:rgba(255,138,43,.1);
+      border-radius:999px;
+      color:#ffd8ac;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .wrap{max-width:1400px;margin:0 auto;padding:28px 20px 48px}
+    .hero{
+      border:1px solid var(--line);
+      background:linear-gradient(135deg,rgba(255,139,43,.13),rgba(21,32,53,.88));
+      border-radius:30px;
+      box-shadow:var(--shadow);
+      padding:28px;
+      margin-bottom:24px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:before{
+      content:"";
+      position:absolute;inset:auto -60px -80px auto;
+      width:240px;height:240px;border-radius:50%;
+      background:radial-gradient(circle,rgba(86,168,255,.22),transparent 70%);
+      pointer-events:none;
+    }
+    .hero-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:#d7e4ff;
+      font-size:12px;
+      margin-bottom:14px;
+    }
+    .hero h1{margin:0;font-size:42px;line-height:1.05}
+    .hero p{margin:12px 0 0;color:var(--muted);font-size:15px}
+    .hero strong{color:#fff}
+    .controls{
+      display:grid;
+      grid-template-columns:minmax(260px,1.4fr) minmax(170px,.8fr) auto auto;
+      gap:14px;
+      align-items:center;
+      margin-bottom:18px;
+    }
+    .field,.badge,.sort-btn{
+      border:1px solid var(--line);
+      background:rgba(10,16,28,.84);
+      color:var(--text);
+      border-radius:18px;
+      min-height:54px;
+      box-shadow:var(--shadow);
+    }
+    .field{display:flex;align-items:center;padding:0 16px;gap:12px}
+    .field input,.field select{
+      width:100%;
+      background:transparent;
+      border:none;
+      outline:none;
+      color:var(--text);
+      font-size:15px;
+      font-family:inherit;
+    }
+    .field select option{color:#000}
+    .badge{
+      display:flex;align-items:center;justify-content:center;
+      padding:0 16px;
+      color:#d8e6ff;
+      font-weight:600;
+      white-space:nowrap;
+    }
+    .sort-btn{
+      padding:0 18px;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:700;
+      transition:.2s ease;
+    }
+    .sort-btn:hover{border-color:var(--line-2);transform:translateY(-1px)}
+    .tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:22px;
+    }
+    .tab-btn{
+      border:1px solid var(--line);
+      background:rgba(12,19,32,.86);
+      color:#cfddf7;
+      min-height:42px;
+      padding:0 14px;
+      border-radius:999px;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+    .tab-btn.active{
+      border-color:rgba(255,152,74,.45);
+      background:rgba(255,139,43,.15);
+      color:#fff2e2;
+    }
+    .section-head{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:18px;
+      color:#bfd0ec;
+      font-size:13px;
+      letter-spacing:.28em;
+      text-transform:uppercase;
+    }
+    .section-head:before,.section-head:after{
+      content:"";
+      height:1px;
+      background:linear-gradient(90deg,transparent,rgba(126,169,255,.28),transparent);
+      flex:1;
+    }
+    #loading{
+      display:none;
+      border:1px solid var(--line);
+      background:rgba(12,19,32,.84);
+      border-radius:22px;
+      padding:36px 20px;
+      text-align:center;
+      color:#d6e1f4;
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:16px;
+    }
+    .card{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,rgba(18,27,45,.98),rgba(10,15,26,.98));
+      border-radius:22px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      transition:.2s ease;
+    }
+    .card:hover{transform:translateY(-3px);border-color:rgba(255,170,70,.35)}
+    .card-img{
+      aspect-ratio:1.12/1;
+      background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    .card-img img{width:100%;height:100%;object-fit:cover;display:block}
+    .img-ph{
+      width:100%;height:100%;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      color:var(--muted);gap:8px;font-size:14px;
+    }
+    .card-info{padding:16px}
+    .car-name{
+      font-size:18px;
+      font-weight:800;
+      line-height:1.3;
+      margin-bottom:8px;
+      word-break:break-word;
+    }
+    .car-id,.car-cat,.car-desc{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+    .car-cat{
+      display:inline-flex;
+      margin-top:8px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(86,168,255,.12);
+      border:1px solid rgba(86,168,255,.16);
+    }
+    .car-desc{margin-top:10px}
+    .no-result{
+      border:1px dashed rgba(126,169,255,.22);
+      background:rgba(12,19,32,.6);
+      border-radius:24px;
+      min-height:220px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      color:#c5d6f0;
+      gap:8px;
+    }
+    .pagination{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:10px;
+      margin-top:24px;
+      justify-content:center;
+    }
+    .pg-btn,.pg-jump-input{
+      min-height:42px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(12,19,32,.86);
+      color:var(--text);
+      box-shadow:var(--shadow);
+    }
+    .pg-btn{
+      min-width:42px;
+      padding:0 14px;
+      cursor:pointer;
+    }
+    .pg-btn.active{
+      background:rgba(255,139,43,.18);
+      border-color:rgba(255,170,70,.35);
+      color:#fff0dc;
+    }
+    .pg-btn:disabled{opacity:.45;cursor:not-allowed}
+    .pg-info{color:var(--muted);font-size:13px}
+    .pg-jump{display:flex;align-items:center;gap:8px}
+    .pg-jump-input{
+      width:78px;
+      padding:0 10px;
+      outline:none;
+    }
+    footer{
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:32px;
+    }
+    #ctx-menu{
+      position:fixed;
+      z-index:120;
+      min-width:170px;
+      display:none;
+      border:1px solid var(--line);
+      background:rgba(10,16,28,.94);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      padding:8px;
+    }
+    #ctx-menu.show{display:block}
+    .ctx-label{
+      color:var(--muted);
+      font-size:12px;
+      padding:8px 10px 6px;
+    }
+    .ctx-item{
+      min-height:40px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:0 10px;
+      border-radius:12px;
+      cursor:pointer;
+    }
+    .ctx-item:hover{background:rgba(255,255,255,.05)}
+    .ctx-sep{
+      height:1px;
+      background:rgba(255,255,255,.06);
+      margin:6px 0;
+    }
+    #copy-toast{
+      position:fixed;
+      left:50%;
+      bottom:26px;
+      transform:translateX(-50%) translateY(20px);
+      opacity:0;
+      pointer-events:none;
+      z-index:130;
+      padding:12px 16px;
+      border-radius:999px;
+      background:rgba(10,16,28,.95);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      transition:.2s ease;
+    }
+    #copy-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    #item-modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background:rgba(2,6,10,.66);
+      backdrop-filter:blur(10px);
+      z-index:110;
+    }
+    #item-modal.show{display:flex}
+    .detail-panel{
+      width:min(920px,100%);
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(280px,360px);
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,rgba(18,27,45,.98),rgba(10,15,26,.98));
+      border-radius:26px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+    .detail-close{
+      position:absolute;
+      top:14px;right:14px;
+      width:40px;height:40px;
+      border:none;
+      border-radius:50%;
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      font-size:24px;
+      cursor:pointer;
+      z-index:2;
+    }
+    .detail-media{
+      min-height:320px;
+      background:rgba(255,255,255,.03);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .detail-media img{
+      max-width:100%;
+      max-height:420px;
+      object-fit:contain;
+    }
+    .detail-meta{padding:24px}
+    .detail-type{
+      display:inline-flex;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(86,168,255,.12);
+      border:1px solid rgba(86,168,255,.18);
+      color:#d8e8ff;
+      font-size:12px;
+      margin-bottom:12px;
+    }
+    .detail-title{margin:0;font-size:28px;line-height:1.2}
+    .detail-id{margin-top:8px;color:var(--muted)}
+    .detail-actions{margin-top:18px}
+    .detail-link{
+      min-height:42px;
+      border:none;
+      border-radius:14px;
+      padding:0 14px;
+      background:rgba(255,139,43,.16);
+      color:#fff2e0;
+      cursor:pointer;
+    }
+    .detail-block{margin-top:18px}
+    .detail-label{
+      color:#ffc88f;
+      font-size:12px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    .detail-text{
+      color:#dae5f8;
+      line-height:1.7;
+      word-break:break-word;
+      white-space:pre-wrap;
+    }
+    @media (max-width:900px){
+      .controls{grid-template-columns:1fr}
+      .detail-panel{grid-template-columns:1fr}
+      .hero h1{font-size:34px}
+      .topbar-inner{flex-direction:column;align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <div class="brand-title">xblack 赛车图鉴</div>
+        <div class="brand-sub">QQ 飞车全量数据检索</div>
+      </div>
+      <div class="brand-badge">后端接口模式</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-kicker">xblack exclusive</div>
+      <h1>赛车图鉴检索</h1>
+      <p>当前数据量：<strong id="totalCount">0</strong> 条。页面只请求当前查询结果，不再向浏览器下发整库文件。</p>
+    </section>
+
+    <section class="controls">
+      <label class="field">
+        <span>搜索</span>
+        <input id="searchInput" type="text" placeholder="输入名称或 ID" autocomplete="off" spellcheck="false">
+      </label>
+      <label class="field">
+        <span>分类</span>
+        <select id="categorySelect">
+          <option value="ALL">全部分类</option>
+        </select>
+      </label>
+      <div class="badge" id="statsInfo">0 条</div>
+      <button class="sort-btn" id="sortBtn" type="button">最新优先</button>
+    </section>
+
+    <section class="tabs" id="catTabs"></section>
+    <div class="section-head">All Items</div>
+    <div id="loading">Loading...</div>
+    <div class="grid" id="carsContainer"></div>
+    <div class="pagination" id="pagination"></div>
+    <footer>xblack 赛车图鉴</footer>
+  </main>
+
+  <div id="ctx-menu">
+    <div class="ctx-label">操作</div>
+    <div class="ctx-item" onclick="ctxCopy('id')">复制 ID</div>
+    <div class="ctx-item" onclick="ctxCopy('name')">复制名称</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="ctxCopy('both')">复制 ID + 名称</div>
+  </div>
+  <div id="copy-toast"></div>
+
+  <div id="item-modal" aria-hidden="true">
+    <div class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title" onclick="event.stopPropagation()">
+      <button class="detail-close" type="button" onclick="closeDetail()" aria-label="关闭详情">&times;</button>
+      <div class="detail-media">
+        <img id="detail-image" alt="" loading="eager">
+      </div>
+      <div class="detail-meta">
+        <div class="detail-type" id="detail-type">未分类</div>
+        <h2 class="detail-title" id="detail-title">物品详情</h2>
+        <div class="detail-id" id="detail-id">ID: -</div>
+        <div class="detail-actions">
+          <button class="detail-link" type="button" onclick="ctxCopy('both')">复制 ID + 名称</button>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">用途</div>
+          <div class="detail-text" id="detail-usage">暂无</div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">描述</div>
+          <div class="detail-text" id="detail-desc">暂无</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PAGE_FALLBACK = 60;
+    const QUICK_TABS_FALLBACK = [
+      { key: "ALL", label: "全部", count: "" },
+      { key: "skin", label: "赛车皮肤", count: "" },
+      { key: "S", label: "S", count: "" },
+      { key: "A", label: "A", count: "" },
+      { key: "B", label: "B", count: "" },
+      { key: "C", label: "C", count: "" },
+      { key: "D", label: "D", count: "" },
+      { key: "T3", label: "T3", count: "" },
+      { key: "T2", label: "T2", count: "" },
+      { key: "T1", label: "T1", count: "" },
+      { key: "suit", label: "套装", count: "" },
+      { key: "pet", label: "宠物", count: "" }
+    ];
+
+    let PAGE_SIZE = PAGE_FALLBACK;
+    let ALL = [];
+    let currentSearch = "";
+    let currentCat = "ALL";
+    let currentPage = 1;
+    let sortOrder = "desc";
+    let _lastChunk = [];
+    let _ctxItem = null;
+    let _toastTimer;
+    let _searchTimer;
+
+    const container = document.getElementById("carsContainer");
+    const statsEl = document.getElementById("statsInfo");
+    const pagEl = document.getElementById("pagination");
+    const ctxMenu = document.getElementById("ctx-menu");
+    const toast = document.getElementById("copy-toast");
+    const itemModal = document.getElementById("item-modal");
+    const detailImage = document.getElementById("detail-image");
+    const detailType = document.getElementById("detail-type");
+    const detailTitle = document.getElementById("detail-title");
+    const detailId = document.getElementById("detail-id");
+    const detailUsage = document.getElementById("detail-usage");
+    const detailDesc = document.getElementById("detail-desc");
+
+    function escH(s){
+      return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
+    }
+
+    function catSlot(t){
+      if(!t) return "";
+      if(t.includes("S")) return "s";
+      if(t.includes("A")) return "a";
+      if(t.includes("B")) return "b";
+      if(t.includes("皮肤")) return "skin";
+      if(t.includes("宠物")) return "pet";
+      if(t.includes("套装") || t.includes("上身") || t.includes("下身") || t.includes("上衣") || t.includes("下装") || t.includes("手套") || t.includes("发型") || t.includes("头饰") || t.includes("脸饰") || t.includes("眼镜") || t.includes("装扮") || t.includes("背包")) return "suit";
+      if(t.includes("宝箱")) return "box";
+      return "";
+    }
+
+    function getItemImageUrl(id){
+      return `https://iips.speed.qq.com/images/${id}.png`;
+    }
+
+    function getDetailText(value){
+      const text = String(value || "").trim();
+      return text || "暂无";
+    }
+
+    function syncDetailImage(loaded){
+      detailImage.hidden = !loaded;
+    }
+
+    async function init(){
+      const loading = document.getElementById("loading");
+      loading.style.display = "block";
+      loading.textContent = "Loading...";
+      container.style.display = "none";
+
+      try{
+        await loadMeta();
+        await fetchPage();
+      }catch(err){
+        loading.textContent = "Load failed: " + err.message;
+      }
+    }
+
+    async function loadMeta(){
+      const res = await fetch("/api/meta", { cache: "no-store" });
+      if(!res.ok) throw new Error("/api/meta returned " + res.status);
+      const meta = await res.json();
+      PAGE_SIZE = meta.pageSize || PAGE_FALLBACK;
+      document.getElementById("totalCount").textContent = (meta.total || 0).toLocaleString();
+
+      const sel = document.getElementById("categorySelect");
+      sel.innerHTML = '<option value="ALL">全部分类</option>' +
+        (meta.categories || []).map(c => `<option value="${escH(c.value)}">${escH(c.value)} (${c.count})</option>`).join("");
+
+      const tabsEl = document.getElementById("catTabs");
+      tabsEl.innerHTML = "";
+      const tabs = meta.quickTabs || QUICK_TABS_FALLBACK;
+      tabs.forEach(tab => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tab-btn" + (tab.key === "ALL" ? " active" : "");
+        btn.dataset.cat = tab.key;
+        btn.textContent = (tab.key === "ALL" ? "全部" : tab.label) + (tab.key !== "ALL" && tab.count !== "" ? ` ${tab.count}` : "");
+        btn.addEventListener("click", () => {
+          currentCat = tab.key;
+          currentPage = 1;
+          sel.value = "ALL";
+          document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+          btn.classList.add("active");
+          fetchPage().catch(err => showToast("Error: " + err.message));
+        });
+        tabsEl.appendChild(btn);
+      });
+    }
+
+    async function fetchPage(){
+      const loading = document.getElementById("loading");
+      loading.style.display = "block";
+      loading.textContent = "Loading...";
+      container.style.display = "none";
+
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        page_size: String(PAGE_SIZE),
+        sort: sortOrder,
+        cat: currentCat,
+        q: currentSearch.trim()
+      });
+
+      const res = await fetch("/api/items?" + params.toString(), { cache: "no-store" });
+      if(!res.ok) throw new Error("/api/items returned " + res.status);
+      const data = await res.json();
+
+      ALL = data.items || [];
+      _lastChunk = ALL;
+      currentPage = data.page || 1;
+      PAGE_SIZE = data.pageSize || PAGE_SIZE;
+
+      loading.style.display = "none";
+      container.style.display = "";
+      render(data.total || 0, data.pages || 1);
+    }
+
+    function render(total, pages){
+      statsEl.textContent = total.toLocaleString() + " 条";
+      if(!ALL.length){
+        container.innerHTML = '<div class="no-result"><span class="no-result-icon">⚠</span><span>没有找到相关内容</span></div>';
+        pagEl.innerHTML = "";
+        return;
+      }
+
+      container.innerHTML = ALL.map((item, idx) => {
+        const slot = item.slot || catSlot(item.type);
+        const imgUrl = getItemImageUrl(item.id);
+        const descHtml = item.desc ? `<div class="car-desc" title="${escH(item.desc)}">${escH(item.desc)}</div>` : "";
+        return `<div class="card" data-idx="${idx}"${slot ? ` data-s="${slot}"` : ""}>` +
+          `<div class="card-img"><img src="${imgUrl}" alt="${escH(item.name)}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=&quot;img-ph&quot;><span>?</span><span>暂无</span></div>'"></div>` +
+          `<div class="card-info"><div class="car-name" title="${escH(item.name)}">${escH(item.name)}</div>` +
+          `<div class="car-id">ID: ${item.id}</div><div class="car-cat">${escH(item.type)}</div>${descHtml}</div></div>`;
+      }).join("");
+
+      renderPag(total, pages);
+    }
+
+    function renderPag(total, pages){
+      if(pages <= 1){
+        pagEl.innerHTML = "";
+        return;
+      }
+
+      const d = 2;
+      let lo = Math.max(1, currentPage - d);
+      let hi = Math.min(pages, currentPage + d);
+      if(currentPage - d < 1) hi = Math.min(pages, hi + (d - currentPage + 1));
+      if(currentPage + d > pages) lo = Math.max(1, lo - (currentPage + d - pages));
+
+      let h = `<button class="pg-btn" onclick="go(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>◀</button>`;
+      if(lo > 1){
+        h += `<button class="pg-btn" onclick="go(1)">1</button>`;
+        if(lo > 2) h += `<span class="pg-info">...</span>`;
+      }
+      for(let i = lo; i <= hi; i++){
+        h += `<button class="pg-btn${i === currentPage ? " active" : ""}" onclick="go(${i})">${i}</button>`;
+      }
+      if(hi < pages){
+        if(hi < pages - 1) h += `<span class="pg-info">...</span>`;
+        h += `<button class="pg-btn" onclick="go(${pages})">${pages}</button>`;
+      }
+      h += `<button class="pg-btn" onclick="go(${currentPage + 1})" ${currentPage === pages ? "disabled" : ""}>▶</button>`;
+      h += `<span class="pg-info">第 ${currentPage} 页 / 共 ${pages} 页 · ${total.toLocaleString()} 条</span>`;
+      h += `<span class="pg-jump"><input class="pg-jump-input" id="pageJumpInput" type="number" min="1" max="${pages}" value="${currentPage}" onkeydown="if(event.key==='Enter')jumpPage(this.value)"><button class="pg-btn" onclick="jumpPage(document.getElementById('pageJumpInput').value)">跳转</button></span>`;
+      pagEl.innerHTML = h;
+    }
+
+    function go(n){
+      const p = Math.max(1, n);
+      if(p === currentPage) return;
+      currentPage = p;
+      fetchPage()
+        .then(() => window.scrollTo({ top: 0, behavior: "smooth" }))
+        .catch(err => showToast("Error: " + err.message));
+    }
+
+    function jumpPage(value){
+      const page = parseInt(value, 10);
+      if(!Number.isFinite(page)){
+        showToast("请输入有效页码");
+        return;
+      }
+      go(page);
+    }
+
+    function toggleSort(){
+      sortOrder = sortOrder === "desc" ? "asc" : "desc";
+      const btn = document.getElementById("sortBtn");
+      btn.textContent = sortOrder === "desc" ? "最新优先" : "最早优先";
+      btn.classList.toggle("asc", sortOrder === "asc");
+      currentPage = 1;
+      fetchPage().catch(err => showToast("Error: " + err.message));
+    }
+
+    function openDetail(item){
+      if(!item) return;
+      _ctxItem = item;
+      detailType.textContent = getDetailText(item.type);
+      detailTitle.textContent = getDetailText(item.name);
+      detailId.textContent = "ID: " + item.id;
+      detailUsage.textContent = getDetailText(item.usage);
+      detailDesc.textContent = getDetailText(item.desc);
+      detailImage.alt = item.name || "";
+      syncDetailImage(false);
+      detailImage.removeAttribute("src");
+      detailImage.src = getItemImageUrl(item.id);
+      itemModal.classList.add("show");
+      itemModal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeDetail(){
+      itemModal.classList.remove("show");
+      itemModal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function ctxCopy(type){
+      ctxMenu.classList.remove("show");
+      if(!_ctxItem){
+        showToast("未选中任何卡片");
+        return;
+      }
+      let text = "";
+      if(type === "id") text = String(_ctxItem.id);
+      if(type === "name") text = _ctxItem.name;
+      if(type === "both") text = _ctxItem.id + "  " + _ctxItem.name;
+
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.cssText = "position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if(ok){
+          showToast("已复制: " + text.slice(0, 28) + (text.length > 28 ? "..." : ""));
+        }else if(navigator.clipboard){
+          navigator.clipboard.writeText(text)
+            .then(() => showToast("已复制: " + text.slice(0, 28) + (text.length > 28 ? "..." : "")))
+            .catch(() => showToast("复制失败"));
+        }else{
+          showToast("复制失败");
+        }
+      }catch(err){
+        showToast("复制失败: " + err.message);
+      }
+    }
+
+    detailImage.addEventListener("load", () => syncDetailImage(true));
+    detailImage.addEventListener("error", () => {
+      detailImage.removeAttribute("src");
+      syncDetailImage(false);
+    });
+
+    itemModal.addEventListener("click", e => {
+      if(e.target === itemModal) closeDetail();
+    });
+
+    container.addEventListener("click", e => {
+      const card = e.target.closest(".card");
+      if(!card) return;
+      const idx = parseInt(card.dataset.idx || "-1", 10);
+      if(idx < 0) return;
+      openDetail(_lastChunk[idx]);
+    });
+
+    container.addEventListener("contextmenu", e => {
+      const card = e.target.closest(".card");
+      if(!card) return;
+      e.preventDefault();
+      const idx = parseInt(card.dataset.idx || "-1", 10);
+      if(idx < 0) return;
+      _ctxItem = _lastChunk[idx];
+      const mw = ctxMenu.offsetWidth || 170;
+      const mh = ctxMenu.offsetHeight || 130;
+      const mx = e.clientX;
+      const my = e.clientY;
+      ctxMenu.style.left = (mx + mw > window.innerWidth ? mx - mw : mx) + "px";
+      ctxMenu.style.top = (my + mh > window.innerHeight ? my - mh : my) + "px";
+      ctxMenu.classList.add("show");
+    });
+
+    document.addEventListener("click", () => ctxMenu.classList.remove("show"));
+    document.addEventListener("keydown", e => {
+      if(e.key !== "Escape") return;
+      ctxMenu.classList.remove("show");
+      closeDetail();
+    });
+    document.addEventListener("contextmenu", e => {
+      if(!e.target.closest("#carsContainer")) ctxMenu.classList.remove("show");
+    });
+
+    document.getElementById("searchInput").addEventListener("input", e => {
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => {
+        currentSearch = e.target.value;
+        currentPage = 1;
+        fetchPage().catch(err => showToast("Error: " + err.message));
+      }, 220);
+    });
+
+    document.getElementById("categorySelect").addEventListener("change", e => {
+      currentCat = e.target.value;
+      currentPage = 1;
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.cat === currentCat));
+      fetchPage().catch(err => showToast("Error: " + err.message));
+    });
+
+    document.getElementById("sortBtn").addEventListener("click", toggleSort);
+    window.addEventListener("load", init);
+  </script>
+</body>
+</html>
